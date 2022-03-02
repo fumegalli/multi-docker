@@ -1,0 +1,21 @@
+sudo: required
+
+services:
+  - docker
+
+before_install:
+  - docker build -t fumegalli/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true fumegalli/react-test npm test
+
+after_success:
+  - docker build -t fumegalli/multi-client ./client
+  - docker build -t fumegalli/multi-nginx ./nginx
+  - docker build -t fumegalli/multi-server ./server
+  - docker build -t fumegalli/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push fumegalli/multi-client
+  - docker push fumegalli/multi-nginx
+  - docker push fumegalli/multi-server
+  - docker push fumegalli/multi-worker
